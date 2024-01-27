@@ -1,0 +1,54 @@
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 30px;
+  background-color: #f5f5f5; /* Light gray background */
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+h1 {
+  font-size: 28px; /* Larger font size for emphasis */
+  margin-bottom: 20px;
+  color: #007BFF; /* Blue title color */
+}
+
+label {
+  font-weight: bold;
+  display: block;
+  margin-top: 15px; /* Increased margin for spacing */
+  color: #333; /* Darkened label text color */
+}
+
+textarea {
+  width: 100%;
+  height: 150px;
+  padding: 12px; /* Increased padding for a more comfortable text input */
+  border: 2px solid #ccc; /* Slightly thicker border */
+  border-radius: 5px;
+  margin-top: 10px; /* Adjusted margin for spacing */
+}
+
+input[type="file"] {
+  margin-top: 10px;
+}
+
+button {
+  display: block;
+  margin-top: 20px;
+  padding: 12px 24px; /* Increased padding for a prominent button */
+  background: linear-gradient(to bottom, #007BFF, #0056b3); /* Gradient background */
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: 18px; /* Increased font size for emphasis */
+}
+
+button:hover {
+  background: linear-gradient(to bottom, #0056b3, #003c74); /* Gradient background on hover */
+  transform: translateY(-5px); /* Add a slight lift on hover */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Enhanced box shadow on hover */
+}

@@ -1,0 +1,56 @@
+/* Style for the container */
+.found-items-container {
+  text-align: center;
+  margin: 20px auto; /* Center the container */
+  padding: 20px; /* Added padding for better spacing */
+  background: #f0f0f0; /* Subtle background color */
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1); /* Added a shadow for depth */
+  max-width: 800px; /* Limit container width for readability */
+}
+
+/* Style for the list heading */
+h1 {
+  font-size: 28px; /* Increased font size for emphasis */
+  color: #333;
+  margin: 10px 0; /* Adjusted margin for spacing */
+  text-transform: uppercase; /* Uppercase text */
+}
+
+/* Style for individual list items */
+li {
+  margin: 20px 0; /* Increased margin for spacing */
+  padding: 20px;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  background: #fff; /* Light background color */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s; /* Added subtle hover effect */
+}
+
+li:hover {
+  transform: translateY(-2px); /* Slight lift on hover */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
+}
+
+/* Style for item description */
+h3 {
+  font-size: 20px; /* Larger font size for emphasis */
+  color: #444;
+  margin: 10px 0; /* Adjusted margin for spacing */
+}
+
+p {
+  font-size: 16px;
+  color: #666;
+  margin: 10px 0; /* Adjusted margin for spacing */
+}
+
+/* Style for item image */
+img {
+  max-width: 100%;
+  height: auto;
+  margin-top: 20px; /* Increased margin for spacing */
+  border-radius: 5px; /* Added border radius to images */
+}
