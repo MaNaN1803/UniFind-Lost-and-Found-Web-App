@@ -1,0 +1,66 @@
+
+.navbar {
+  width: 100%;
+  height: 70px; 
+  background: linear-gradient(to right, #000032, #000032); 
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  color: white;
+  font-size: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+}
+
+.white_btn {
+  background-color: #333; /* Dark background color */
+  color: white; /* White text color */
+  border: 2px solid #333; /* Add a border matching the background color */
+  border-radius: 5px; /* Slight border radius for a classic look */
+  padding: 8px 20px; /* Adjusted padding for a prominent button size */
+  margin: 15px;
+  margin-right: 50px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s; /* Add a subtle hover effect */
+  transform: translateY(0);
+}
+
+.white_btn:hover {
+  background-color: #555; /* Darken the background color on hover */
+  transform: translateY(-3px); /* Add a slight lift on hover */
+}
+
+.logo {
+  width: 50px; 
+  height: auto;
+  margin-right: 10px;
+}
+
+
+.welcome {
+  text-align: center;
+  color: #3bb19b; 
+  font-size: 24px; 
+  font-weight: bold;
+  margin: 15px 0; 
+}
+
+
+.navLinks {
+  display: flex;
+  gap: 20px;
+}
+
+.navLinks a {
+  text-decoration: none;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  transition: color 0.3s;
+}
+
+.navLinks a:hover {
+  color: #00bcd4; 
+}

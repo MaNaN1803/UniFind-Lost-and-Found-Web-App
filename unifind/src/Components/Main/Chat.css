@@ -1,0 +1,315 @@
+.App {
+  width: 100vw;
+  height: 100vh;
+  background: #fff;
+  color: #212121;
+  font-family: "Open Sans", sans-serif;
+  display: grid;
+  place-items: center;
+}
+
+body {
+  margin: 0%;
+  padding: 0%;
+}
+
+.joinChatContainer {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.joinChatContainer h3 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.joinChatContainer input {
+  width: 210px;
+  height: 40px;
+  margin: 7px;
+  border: 2px solid #43a047;
+  border-radius: 5px;
+  padding: 5px;
+  font-size: 16px;
+}
+
+.joinChatContainer button {
+  width: 225px;
+  height: 50px;
+  margin: 7px;
+  border: none;
+  border-radius: 5px;
+  padding: 5px;
+  font-size: 16px;
+  background: #43a047;
+  color: #fff;
+  cursor: pointer;
+}
+
+.joinChatContainer button:hover {
+  background: #2e7d32;
+}
+
+.chat-window {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #0b141a;
+  /* WhatsApp dark mode background */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.chat-window p {
+  margin: 0;
+}
+
+.chat-window .chat-header {
+  height: 60px;
+  background: #202c33;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  border-bottom: 1px solid #2a3942;
+  box-sizing: border-box;
+}
+
+.chat-window .chat-header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chat-window .chat-header-avatar {
+  width: 40px;
+  height: 40px;
+  background-color: #6b7c85;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.chat-window .chat-header p {
+  color: #e9edef;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.chat-window .chat-header .leave-room-btn {
+  background: transparent;
+  border: none;
+  color: #8696a0;
+  cursor: pointer;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.chat-window .chat-header .leave-room-btn:hover {
+  background-color: #2a3942;
+  color: #d1d7db;
+}
+
+.chat-window .chat-body {
+  flex: 1;
+  background-color: #0b141a;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23192229' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  position: relative;
+  overflow: hidden;
+}
+
+.chat-window .chat-body .message-container {
+  width: 100%;
+  height: 100%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  padding: 20px 5%;
+  box-sizing: border-box;
+}
+
+.chat-window .chat-body .message-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-window .chat-body .message-container::-webkit-scrollbar-thumb {
+  background-color: #374045;
+  border-radius: 3px;
+}
+
+.chat-window .chat-body .message {
+  height: auto;
+  display: flex;
+  margin-bottom: 10px;
+}
+
+/* Sender/Receiver layout */
+#you {
+  justify-content: flex-end;
+}
+
+#other {
+  justify-content: flex-start;
+}
+
+.chat-window .chat-body .message .message-content {
+  max-width: 65%;
+  min-width: 80px;
+  padding: 6px 7px 8px 9px;
+  border-radius: 7.5px;
+  position: relative;
+  box-shadow: 0 1px 0.5px rgba(11, 20, 26, .13);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Sent message bubble (Dark Green) */
+#you .message-content {
+  background-color: #005c4b;
+  border-top-right-radius: 0;
+}
+
+/* Received message bubble (Dark Gray) */
+#other .message-content {
+  background-color: #202c33;
+  border-top-left-radius: 0;
+}
+
+/* Tails */
+#you .message-content::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -8px;
+  width: 0;
+  height: 0;
+  border-top: 0px solid transparent;
+  border-left: 8px solid #005c4b;
+  border-bottom: 8px solid transparent;
+}
+
+#other .message-content::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -8px;
+  width: 0;
+  height: 0;
+  border-top: 0px solid transparent;
+  border-right: 8px solid #202c33;
+  border-bottom: 8px solid transparent;
+}
+
+/* Author name for group chats */
+.message-sender-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #53bdeb;
+  margin-bottom: 2px;
+}
+
+.message-text {
+  font-size: 14.2px;
+  line-height: 19px;
+  color: #e9edef;
+  word-wrap: break-word;
+}
+
+.message-image {
+  max-width: 100%;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  object-fit: cover;
+}
+
+.message-meta {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  margin-top: -10px;
+  float: right;
+}
+
+.message-meta p#time {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 12px;
+  margin-left: 10px;
+}
+
+/* FOOTER / INPUT AREA */
+.chat-window .chat-footer {
+  min-height: 62px;
+  background: #202c33;
+  display: flex;
+  align-items: center;
+  padding: 5px 16px;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+.chat-upload-label {
+  cursor: pointer;
+  color: #8696a0;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.chat-upload-label:hover {
+  color: #d1d7db;
+}
+
+.chat-window .chat-footer .input-wrapper {
+  flex: 1;
+  background: #2a3942;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  padding: 9px 12px;
+}
+
+.chat-window .chat-footer input[type="text"] {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  color: #d1d7db;
+}
+
+.chat-window .chat-footer input[type="text"]::placeholder {
+  color: #8696a0;
+}
+
+.chat-window .chat-footer button {
+  background: transparent;
+  border: none;
+  color: #8696a0;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.chat-window .chat-footer button:hover {
+  background-color: #374045;
+}
+
+.chat-window .chat-footer button svg {
+  fill: currentColor;
+}
