@@ -1,21 +1,12 @@
 const router = require("express").Router();
 const { User, validate } = require("../models/user");
 const bcrypt = require("bcrypt");
-const nodemailer = require("nodemailer");
 const auth = require("../middleware/auth");
 const FeedItem = require("../models/feedItem");
 const Reward = require("../models/reward");
 const mongoose = require("mongoose");
 const ClaimFoundItem = require("../models/claimFoundItem");
-require("dotenv").config();
-
-const transporter = nodemailer.createTransport({
-  service: "Gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const { sendEmail } = require("../utils/email");
 
 router.post("/", async (req, res) => {
   try {
@@ -35,20 +26,27 @@ router.post("/", async (req, res) => {
 
     await new User({ ...req.body, password: hashPassword }).save();
 
-    // Send a welcome email
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
+    // Send a rich HTML welcome email
+    await sendEmail({
       to: req.body.email,
-      subject: "Welcome to UniFind",
-      text: "Welcome to UniFind! Thank you for joining our platform. Start exploring the live feed to help recover lost items!",
-    };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error("Error sending welcome email: ", error);
-      } else {
-        console.log("Welcome email sent: " + info.response);
-      }
+      subject: "Welcome to UniFind! 🎉",
+      text: "Welcome to UniFind! Thank you for joining our platform.",
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+          <h2 style="color: #22c55e;">Welcome to UniFind, ${req.body.firstName}!</h2>
+          <p>Thank you for joining our lost-and-found community. Your account has been successfully created.</p>
+          <div style="background: #f4f4f5; padding: 15px; border-radius: 10px; margin: 20px 0;">
+            <h3>Getting Started</h3>
+            <ul style="line-height: 1.6;">
+              <li><strong>Lost something?</strong> Report it immediately so others can keep an eye out.</li>
+              <li><strong>Found something?</strong> Post it anonymously or securely to help it get home.</li>
+              <li><strong>Earn Rewards:</strong> Get recognized on the leaderboard for reuniting items with owners!</li>
+            </ul>
+          </div>
+          <p>Click below to start exploring the live feed:</p>
+          <a href="${process.env.BASE_URL || 'https://unifind-lost-and-found.vercel.app'}" style="display: inline-block; padding: 10px 20px; background-color: #000; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;">Go to Home page</a>
+        </div>
+      `,
     });
 
     res.status(201).send({ message: "User created successfully" });

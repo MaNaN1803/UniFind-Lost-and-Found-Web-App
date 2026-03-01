@@ -1,15 +1,7 @@
 const FeedItem = require("../models/feedItem");
 const Notification = require("../models/notification");
 const { User } = require("../models/user");
-const nodemailer = require("nodemailer");
-
-const transporter = nodemailer.createTransport({
-    service: "Gmail",
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-});
+const { sendEmail } = require("./email");
 
 // Calculate distance between two points in km using Haversine formula
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
@@ -97,12 +89,19 @@ async function runMatchEngine(newItem) {
                 }).save();
 
                 if (creatorUser && creatorUser.email) {
-                    transporter.sendMail({
-                        from: process.env.EMAIL_USER,
+                    await sendEmail({
                         to: creatorUser.email,
                         subject: "UniFind - Potential Item Match Alert! 🔔",
-                        text: `Hello ${creatorUser.firstName},\n\nWe found a potential match for the exact item you just reported.\n\nPlease check it out here: ${process.env.BASE_URL || 'http://localhost:3000'}/item/${match._id}\n\nThank you!`
-                    }).catch(console.error);
+                        text: `Hello ${creatorUser.firstName},\n\nWe found a potential match for the exact item you just reported.\n\nPlease check it out here: ${process.env.BASE_URL || 'http://localhost:3000'}/item/${match._id}\n\nThank you!`,
+                        html: `
+                        <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                            <h2 style="color: #3b82f6;">Potential Match Found! 🔔</h2>
+                            <p>Hello ${creatorUser.firstName},</p>
+                            <p>Our matching engine just found a highly similar item to the one you recently reported.</p>
+                            <a href="${process.env.BASE_URL || 'https://unifind-lost-and-found.vercel.app'}/item/${match._id}" style="display: inline-block; padding: 10px 20px; margin-top: 10px; background-color: #000; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;">View Potential Match</a>
+                        </div>
+                        `
+                    });
                 }
 
                 // We can also notify the matched user (the older item's owner)
@@ -118,12 +117,19 @@ async function runMatchEngine(newItem) {
                 }).save();
 
                 if (matchOwnerUser && matchOwnerUser.email) {
-                    transporter.sendMail({
-                        from: process.env.EMAIL_USER,
+                    await sendEmail({
                         to: matchOwnerUser.email,
                         subject: "UniFind - Potential Item Match Alert! 🔔",
-                        text: `Hello ${matchOwnerUser.firstName},\n\nWe found a potential match for the item you previously reported. Someone just posted something very similar.\n\nPlease check it out here: ${process.env.BASE_URL || 'http://localhost:3000'}/item/${newItem._id}\n\nThank you!`
-                    }).catch(console.error);
+                        text: `Hello ${matchOwnerUser.firstName},\n\nWe found a potential match for the item you previously reported. Someone just posted something very similar.\n\nPlease check it out here: ${process.env.BASE_URL || 'http://localhost:3000'}/item/${newItem._id}\n\nThank you!`,
+                        html: `
+                        <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                            <h2 style="color: #3b82f6;">Potential Match Activity! 🔔</h2>
+                            <p>Hello ${matchOwnerUser.firstName},</p>
+                            <p>Someone just posted an item that sounds very similar to the one you previously reported. It might be exactly what you're looking for!</p>
+                            <a href="${process.env.BASE_URL || 'https://unifind-lost-and-found.vercel.app'}/item/${newItem._id}" style="display: inline-block; padding: 10px 20px; margin-top: 10px; background-color: #000; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;">View New Listing</a>
+                        </div>
+                        `
+                    });
                 }
             }
         }

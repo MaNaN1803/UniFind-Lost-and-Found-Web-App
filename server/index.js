@@ -117,7 +117,7 @@ io.on("connection", (socket) => {
     console.log(`User ID ${userId} registered with socket ${socket.id}`);
   });
 
-  socket.on("join_room", (data) => {
+  socket.on("join_room", async (data) => {
     const { room, username } = data;
     socket.join(room);
 
@@ -126,7 +126,45 @@ io.on("connection", (socket) => {
     socket.username = username;
 
     if (!roomUsers[room]) roomUsers[room] = [];
-    roomUsers[room].push({ id: socket.id, username });
+
+    // Check if user is already in the room to prevent duplicate join messages
+    const alreadyInRoom = roomUsers[room].some(u => u.username === username);
+
+    if (!alreadyInRoom) {
+      roomUsers[room].push({ id: socket.id, username });
+
+      // [EXPANSION] Email the OTHER user in the room that someone joined their chat
+      try {
+        if (roomUsers[room].length > 1) { // Meaning someone was waiting, and the second person arrived
+          const otherUsers = roomUsers[room].filter(u => u.username !== username);
+          for (const otherUser of otherUsers) {
+            // Find the user ID based on socket mapping
+            for (const [mappedUserId, mappedSocketId] of userSocketMap.entries()) {
+              if (mappedSocketId === otherUser.id) {
+                // We found the DB User ID of the person waiting
+                const dbUser = await User.findById(mappedUserId);
+                if (dbUser && dbUser.email) {
+                  await sendEmail({
+                    to: dbUser.email,
+                    subject: `${username} joined the chat! 💬`,
+                    text: `${username} just joined your chat room on UniFind.\n\nLog in now to continue the conversation in room: ${room}`,
+                    html: `
+                        <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                          <h2 style="color: #6366f1;">${username} joined the chat! 💬</h2>
+                          <p>Good news! <strong>${username}</strong> just joined your active chat room on UniFind.</p>
+                          <a href="${process.env.BASE_URL || 'https://unifind-lost-and-found.vercel.app'}" style="display: inline-block; padding: 10px 20px; margin-top: 10px; background-color: #000; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;">Go to Chat</a>
+                        </div>
+                      `
+                  });
+                }
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to send chat joined email:", err);
+      }
+    }
 
     console.log(`User ${username} (${socket.id}) joined room: ${room}`);
 
@@ -176,12 +214,22 @@ io.on("connection", (socket) => {
       // Retrieve User Email
       const targetUser = await User.findById(targetUserId);
       if (targetUser && targetUser.email) {
-        transporter.sendMail({
-          from: process.env.EMAIL_USER,
+        await sendEmail({
           to: targetUser.email,
-          subject: "New Chat Invitation via UniFind",
-          text: `Hello ${targetUser.firstName},\n\n${senderName} has invited you to a direct chat regarding an item.\n\nPlease go to UniFind and join room ID: ${roomId}\n\nThank you!`
-        }).catch(console.error);
+          subject: "New Chat Invitation via UniFind 💬",
+          text: `Hello ${targetUser.firstName},\n\n${senderName} has invited you to a direct chat regarding an item.\n\nPlease go to UniFind and join room ID: ${roomId}\n\nThank you!`,
+          html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+              <h2 style="color: #6366f1;">New Chat Invitation 💬</h2>
+              <p>Hello ${targetUser.firstName},</p>
+              <p><strong>${senderName}</strong> has invited you to a direct chat regarding an item.</p>
+              <div style="margin: 20px 0; padding: 20px; background: #fafafa; border-left: 4px solid #6366f1;">
+                <p style="margin: 0;">Room ID: <strong>${roomId}</strong></p>
+              </div>
+              <a href="${process.env.BASE_URL || 'https://unifind-lost-and-found.vercel.app'}" style="display: inline-block; padding: 10px 20px; background-color: #000; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;">Join Chat Room</a>
+            </div>
+          `
+        });
       }
     } catch (err) {
       console.error("Failed to save or send chat invite notification:", err);

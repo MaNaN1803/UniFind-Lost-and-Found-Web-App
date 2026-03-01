@@ -8,16 +8,7 @@ const Reward = require("../models/reward");
 const Notification = require("../models/notification");
 const mongoose = require("mongoose");
 const ClaimFoundItem = require("../models/claimFoundItem");
-const nodemailer = require("nodemailer");
-require("dotenv").config();
-
-const transporter = nodemailer.createTransport({
-    service: "Gmail",
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-});
+const { sendEmail } = require("../utils/email");
 
 const calculateReward = (description) => {
     if (!description) return 10;
@@ -136,12 +127,21 @@ router.put("/claims/:id/status", [auth, admin], async (req, res) => {
                     }).save();
 
                     // Mail finder
-                    transporter.sendMail({
-                        from: process.env.EMAIL_USER,
+                    await sendEmail({
                         to: finder.email,
                         subject: "Item successfully returned! Bounty Awarded 🏆",
-                        text: `Great news! The item you posted ("${item.description}") has been successfully claimed and verified. \n\nAs a thank you for benefiting the community, you've been awarded ${points} Reward Points!\nYour new balance is ${finder.points} PTS! Keep up the great work.`
-                    }).catch(console.error);
+                        text: `Great news! The item you posted ("${item.description}") has been successfully claimed and verified. \n\nAs a thank you for benefiting the community, you've been awarded ${points} Reward Points!\nYour new balance is ${finder.points} PTS! Keep up the great work.`,
+                        html: `
+                        <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                            <h2 style="color: #22c55e;">Item Resolved & Bounty Awarded! 🏆</h2>
+                            <p>Great news! The item you posted ("<strong>${item.description}</strong>") has been successfully returned and verified by the Administration.</p>
+                            <div style="margin: 20px 0; padding: 20px; background: #fafafa; border-left: 4px solid #f59e0b;">
+                                <h3 style="margin-top: 0; color: #f59e0b;">+${points} Reward Points</h3>
+                                <p style="margin-bottom: 0;">As a thank you for benefiting the community, your new balance is <strong>${finder.points} PTS</strong>! Keep climbing the leaderboard.</p>
+                            </div>
+                        </div>
+                        `
+                    });
                 }
             }
 
@@ -154,12 +154,23 @@ router.put("/claims/:id/status", [auth, admin], async (req, res) => {
             }).save();
 
             // Mail claimant
-            transporter.sendMail({
-                from: process.env.EMAIL_USER,
+            await sendEmail({
                 to: claim.createdBy.email,
                 subject: "Claim Approved! ✔️",
-                text: `Congratulations ${claim.createdBy.firstName}! \n\nYour recent claim request for the item ("${claim.itemId?.description || 'Found Item'}") has been officially approved by the Administration. \n\nPlease coordinate with the original poster using the Live Chat to schedule a secure pickup. Have a great day!`
-            }).catch(console.error);
+                text: `Congratulations ${claim.createdBy.firstName}! \n\nYour recent claim request for the item ("${claim.itemId?.description || 'Found Item'}") has been officially approved. \n\nPlease coordinate with the original poster using the Live Chat to schedule a secure pickup. Have a great day!`,
+                html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                            <h2 style="color: #22c55e;">Claim Approved! ✔️</h2>
+                            <p>Congratulations ${claim.createdBy.firstName},</p>
+                            <p>Your recent claim request for "<strong>${claim.itemId?.description || 'Found Item'}</strong>" has been officially approved by the Administration.</p>
+                            <div style="margin: 20px 0; padding: 20px; background: #fafafa; border-left: 4px solid #22c55e;">
+                                <h3 style="margin-top: 0;">Next Steps</h3>
+                                <p style="margin-bottom: 0;">You can now view the finder's contact details or use the Live Chat on the item page to coordinate a secure pickup.</p>
+                            </div>
+                            <a href="${process.env.BASE_URL || 'https://unifind-lost-and-found.vercel.app'}/item/${claim.itemId?._id}" style="display: inline-block; padding: 10px 20px; background-color: #000; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;">View Item Status</a>
+                        </div>
+                `
+            });
 
         } else if (status === 'rejected') {
             // Generate Notification for Claimant
@@ -171,12 +182,21 @@ router.put("/claims/:id/status", [auth, admin], async (req, res) => {
             }).save();
 
             // Mail claimant
-            transporter.sendMail({
-                from: process.env.EMAIL_USER,
+            await sendEmail({
                 to: claim.createdBy.email,
                 subject: "Claim Rejected ❌",
-                text: `Hello ${claim.createdBy.firstName}, \n\nUnfortunately, your recent claim request for the item ("${claim.itemId?.description || 'Found Item'}") has been rejected. \n\nThis usually occurs due to insufficient or inaccurate proof of ownership. If you believe this is a mistake, you may submit a new claim with higher quality photographic evidence or better descriptions.`
-            }).catch(console.error);
+                text: `Hello ${claim.createdBy.firstName}, \n\nUnfortunately, your recent claim request for the item ("${claim.itemId?.description || 'Found Item'}") has been rejected. \n\nThis usually occurs due to insufficient or inaccurate proof of ownership. If you believe this is a mistake, you may submit a new claim with higher quality photographic evidence or better descriptions.`,
+                html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                            <h2 style="color: #ef4444;">Claim Rejected ❌</h2>
+                            <p>Hello ${claim.createdBy.firstName},</p>
+                            <p>Unfortunately, your recent claim request for "<strong>${claim.itemId?.description || 'Found Item'}</strong>" has been reviewed and rejected.</p>
+                            <div style="margin: 20px 0; padding: 20px; background: #fff1f2; border-left: 4px solid #ef4444;">
+                                <p style="margin: 0;">This usually occurs due to insufficient or inaccurate proof of ownership. If you believe this is a mistake, you may submit a new claim with higher quality photographic evidence or a more detailed description of the item.</p>
+                            </div>
+                        </div>
+                `
+            });
         }
 
         res.status(200).json({ message: `Claim ${status} successfully`, claim });

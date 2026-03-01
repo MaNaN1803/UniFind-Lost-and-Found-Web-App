@@ -1,17 +1,7 @@
 const router = require("express").Router();
 const { User } = require("../models/user");
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
-const bcrypt = require("bcrypt");
-require("dotenv").config();
-
-const transporter = nodemailer.createTransport({
-    service: "Gmail",
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-});
+const { sendEmail } = require("../utils/email");
 
 // @route   POST /api/password-reset/forgot
 // @desc    Generate password reset token and email it to user
@@ -31,20 +21,16 @@ router.post("/forgot", async (req, res) => {
 
         const resetLink = `${process.env.BASE_URL || 'http://localhost:3000'}/reset-password/${token}`;
 
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
+        const result = await sendEmail({
             to: user.email,
             subject: "UniFind Password Reset Request",
             text: `You requested a password reset for your UniFind account.\n\nPlease click on the following link, or paste it into your browser to complete the process within one hour of receiving it:\n\n${resetLink}\n\nIf you did not request this, please ignore this email and your password will remain unchanged.\n`,
-        };
-
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.error("Error sending reset email: ", error);
-                return res.status(500).send({ message: "Failed to send reset email" });
-            }
-            res.status(200).send({ message: "If that email exists in our system, a reset link has been sent." });
         });
+
+        if (!result.success) {
+            return res.status(500).send({ message: "Failed to send reset email" });
+        }
+        res.status(200).send({ message: "If that email exists in our system, a reset link has been sent." });
     } catch (error) {
         console.error("Forgot password error: ", error);
         res.status(500).send({ message: "Internal Server Error" });
