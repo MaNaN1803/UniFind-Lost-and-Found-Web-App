@@ -3,10 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
 import Chat from './Chat';
 import { useAuth } from '../../context/AuthContext';
-import io from "socket.io-client";
+import { io } from "socket.io-client";
 import API_BASE_URL from '../../apiConfig';
 
-const socket = io.connect(API_BASE_URL);
+const socket = io(API_BASE_URL, {
+    withCredentials: true,
+    transports: ["websocket", "polling"],
+});
 
 const ScanHandler = () => {
     const { targetId } = useParams();

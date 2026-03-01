@@ -3,13 +3,16 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import Navbar from './Navbar';
-import io from "socket.io-client";
+import { io } from "socket.io-client";
 import toast from 'react-hot-toast';
 import ReadOnlyMap from './ReadOnlyMap';
 
 import API_BASE_URL from '../../apiConfig';
 
-const socket = io.connect(API_BASE_URL);
+const socket = io(API_BASE_URL, {
+    withCredentials: true,
+    transports: ["websocket", "polling"],
+});
 
 // Dynamic Rewards Logic
 const calculateReward = (description) => {

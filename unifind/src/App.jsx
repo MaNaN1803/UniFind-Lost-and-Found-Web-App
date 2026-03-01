@@ -1,7 +1,7 @@
 import { Route, Routes, Navigate, useNavigate } from "react-router-dom";
 import React, { useEffect } from "react";
 import { Toaster, toast } from "react-hot-toast";
-import io from "socket.io-client";
+import { io } from "socket.io-client";
 import Main from "./Components/Main";
 import Signup from "./Components/Signup";
 import Login from "./Components/Login";
@@ -26,7 +26,10 @@ import Leaderboard from "./Components/Main/Leaderboard"; // Import Leaderboard
 import { useAuth } from "./context/AuthContext";
 import API_BASE_URL from './apiConfig';
 
-const socket = io.connect(API_BASE_URL);
+const socket = io(API_BASE_URL, {
+  withCredentials: true,
+  transports: ["websocket", "polling"],
+});
 
 function App() {
   const { user, token } = useAuth();
