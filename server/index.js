@@ -23,16 +23,8 @@ const Notification = require("./models/notification");
 const path = require("path");
 const UserModel = require("./models/usermodel");
 const { User } = require("./models/user");
-const nodemailer = require("nodemailer");
+const { sendEmail } = require("./utils/email");
 const { upload } = require("./utils/cloudinary");
-
-const transporter = nodemailer.createTransport({
-  service: "Gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
 
 connection();
 
