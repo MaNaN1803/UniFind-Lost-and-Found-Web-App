@@ -1,7 +1,9 @@
 require("dotenv").config();
 const express = require("express");
 const app = express();
-const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
+const allowedOrigins = process.env.BASE_URL
+  ? process.env.BASE_URL.split(",").map((o) => o.trim())
+  : ["http://localhost:3000", "http://localhost:5173"];
 const cors = require("cors");
 const http = require("http");
 const connection = require("./db");
@@ -41,7 +43,18 @@ app.use("/public", express.static(path.join(__dirname, "public")));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(express.static("public"));
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS: " + origin));
+      }
+    },
+    credentials: true,
+  })
+);
 app.use("/api/feed", feedRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/auth", authRoutes);
@@ -79,8 +92,9 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: BASE_URL,
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
