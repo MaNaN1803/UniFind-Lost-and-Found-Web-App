@@ -251,8 +251,8 @@ io.on("connection", (socket) => {
       await new Notification({
         userId: targetUserId,
         type: 'chat_invite',
-        message: `${senderName} has invited you to a chat.Join room ID: ${roomId} `,
-        link: `/ #chat`
+        message: `${senderName} has invited you to a chat. Join room ID: ${roomId}`,
+        link: `/#chat`
       }).save();
 
       // Retrieve User Email
@@ -261,9 +261,9 @@ io.on("connection", (socket) => {
         await sendEmail({
           to: targetUser.email,
           subject: "New Chat Invitation via UniFind 💬",
-          text: `Hello ${targetUser.firstName}, \n\n${senderName} has invited you to a direct chat regarding an item.\n\nPlease go to UniFind and join room ID: ${roomId} \n\nThank you!`,
+          text: `Hello ${targetUser.firstName},\n\n${senderName} has invited you to a direct chat regarding an item.\n\nPlease go to UniFind and join room ID: ${roomId}\n\nThank you!`,
           html: `
-    < div style = "font-family: Arial, sans-serif; padding: 20px; color: #333;" >
+            <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
               <h2 style="color: #6366f1;">New Chat Invitation 💬</h2>
               <p>Hello ${targetUser.firstName},</p>
               <p><strong>${senderName}</strong> has invited you to a direct chat regarding an item.</p>
@@ -271,8 +271,8 @@ io.on("connection", (socket) => {
                 <p style="margin: 0;">Room ID: <strong>${roomId}</strong></p>
               </div>
               <a href="${process.env.BASE_URL || 'https://unifind-lost-and-found.vercel.app'}" style="display: inline-block; padding: 10px 20px; background-color: #000; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;">Join Chat Room</a>
-            </div >
-    `
+            </div>
+          `
         });
       }
     } catch (err) {
