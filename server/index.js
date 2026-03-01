@@ -99,6 +99,7 @@ const io = new Server(server, {
 
 const userSocketMap = new Map(); // Track userId -> socketId
 const roomUsers = {}; // Track active users in each room
+const pendingInvites = new Map(); // Track roomId -> { senderUserId, targetUserId, senderName }
 
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
@@ -125,9 +126,44 @@ io.on("connection", (socket) => {
     if (!alreadyInRoom) {
       roomUsers[room].push({ id: socket.id, username });
 
-      // [EXPANSION] Email the OTHER user in the room that someone joined their chat
+      // [EXPANSION] Check if this room has a pending invite map
       try {
-        if (roomUsers[room].length > 1) { // Meaning someone was waiting, and the second person arrived
+        const inviteData = pendingInvites.get(room);
+
+        if (inviteData && inviteData.senderUserId && inviteData.targetUserId) {
+          // If the person joining is the TARGET (the invited one), notify the SENDER
+          // We can verify this by checking if the username matches the target's name, or we just notify the sender anytime someone joins their room
+          if (username !== inviteData.senderName) {
+            const dbSender = await User.findById(inviteData.senderUserId);
+
+            if (dbSender) {
+              await new Notification({
+                userId: dbSender._id,
+                type: 'chat_joined',
+                message: `${username} just joined your active chat room!`,
+                link: `/#chat`
+              }).save();
+
+              if (dbSender.email) {
+                await sendEmail({
+                  to: dbSender.email,
+                  subject: `${username} joined the chat! 💬`,
+                  text: `${username} just joined your chat room on UniFind.\n\nLog in now to continue the conversation in room: ${room}`,
+                  html: `
+                      <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                        <h2 style="color: #6366f1;">${username} joined the chat! 💬</h2>
+                        <p>Good news! <strong>${username}</strong> just joined your active chat room on UniFind.</p>
+                        <a href="${process.env.BASE_URL || 'https://unifind-lost-and-found.vercel.app'}" style="display: inline-block; padding: 10px 20px; margin-top: 10px; background-color: #000; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;">Go to Chat</a>
+                      </div>
+                    `
+                });
+              }
+              // Remove the pending invite once successful so we don't spam them on every join
+              pendingInvites.delete(room);
+            }
+          }
+        } else if (roomUsers[room].length > 1) {
+          // Fallback logic for organically joined rooms without an invite
           const otherUsers = roomUsers[room].filter(u => u.username !== username);
           for (const otherUser of otherUsers) {
             // Find the user ID based on socket mapping
@@ -135,19 +171,30 @@ io.on("connection", (socket) => {
               if (mappedSocketId === otherUser.id) {
                 // We found the DB User ID of the person waiting
                 const dbUser = await User.findById(mappedUserId);
-                if (dbUser && dbUser.email) {
-                  await sendEmail({
-                    to: dbUser.email,
-                    subject: `${username} joined the chat! 💬`,
-                    text: `${username} just joined your chat room on UniFind.\n\nLog in now to continue the conversation in room: ${room}`,
-                    html: `
-                        <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+                if (dbUser) {
+                  // [EXPANSION] 1. Send In-App Notification
+                  await new Notification({
+                    userId: dbUser._id,
+                    type: 'chat_joined',
+                    message: `${username} just joined your active chat room!`,
+                    link: `/ #chat`
+                  }).save();
+
+                  // [EXPANSION] 2. Send Email Alert
+                  if (dbUser.email) {
+                    await sendEmail({
+                      to: dbUser.email,
+                      subject: `${username} joined the chat! 💬`,
+                      text: `${username} just joined your chat room on UniFind.\n\nLog in now to continue the conversation in room: ${room} `,
+                      html: `
+                < div style = "font-family: Arial, sans-serif; padding: 20px; color: #333;" >
                           <h2 style="color: #6366f1;">${username} joined the chat! 💬</h2>
                           <p>Good news! <strong>${username}</strong> just joined your active chat room on UniFind.</p>
                           <a href="${process.env.BASE_URL || 'https://unifind-lost-and-found.vercel.app'}" style="display: inline-block; padding: 10px 20px; margin-top: 10px; background-color: #000; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;">Go to Chat</a>
-                        </div>
-                      `
-                  });
+                        </div >
+                `
+                    });
+                  }
                 }
               }
             }
@@ -158,7 +205,7 @@ io.on("connection", (socket) => {
       }
     }
 
-    console.log(`User ${username} (${socket.id}) joined room: ${room}`);
+    console.log(`User ${username} (${socket.id}) joined room: ${room} `);
 
     // Broadcast active users to room
     io.to(room).emit("room_users_update", roomUsers[room]);
@@ -192,15 +239,20 @@ io.on("connection", (socket) => {
 
   // Handle invitation to chat
   socket.on("invite_to_chat", async (data) => {
-    const { targetUserId, senderName, itemId, roomId } = data;
+    const { targetUserId, senderUserId, senderName, itemId, roomId } = data;
+
+    // Save invite to memory so when targetUserId joins, senderUserId gets emailed
+    if (senderUserId) {
+      pendingInvites.set(roomId, { senderUserId, targetUserId, senderName });
+    }
 
     try {
       // Save notification to MongoDB
       await new Notification({
         userId: targetUserId,
         type: 'chat_invite',
-        message: `${senderName} has invited you to a chat. Join room ID: ${roomId}`,
-        link: `/#chat`
+        message: `${senderName} has invited you to a chat.Join room ID: ${roomId} `,
+        link: `/ #chat`
       }).save();
 
       // Retrieve User Email
@@ -209,9 +261,9 @@ io.on("connection", (socket) => {
         await sendEmail({
           to: targetUser.email,
           subject: "New Chat Invitation via UniFind 💬",
-          text: `Hello ${targetUser.firstName},\n\n${senderName} has invited you to a direct chat regarding an item.\n\nPlease go to UniFind and join room ID: ${roomId}\n\nThank you!`,
+          text: `Hello ${targetUser.firstName}, \n\n${senderName} has invited you to a direct chat regarding an item.\n\nPlease go to UniFind and join room ID: ${roomId} \n\nThank you!`,
           html: `
-            <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+    < div style = "font-family: Arial, sans-serif; padding: 20px; color: #333;" >
               <h2 style="color: #6366f1;">New Chat Invitation 💬</h2>
               <p>Hello ${targetUser.firstName},</p>
               <p><strong>${senderName}</strong> has invited you to a direct chat regarding an item.</p>
@@ -219,8 +271,8 @@ io.on("connection", (socket) => {
                 <p style="margin: 0;">Room ID: <strong>${roomId}</strong></p>
               </div>
               <a href="${process.env.BASE_URL || 'https://unifind-lost-and-found.vercel.app'}" style="display: inline-block; padding: 10px 20px; background-color: #000; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;">Join Chat Room</a>
-            </div>
-          `
+            </div >
+    `
         });
       }
     } catch (err) {
@@ -234,12 +286,12 @@ io.on("connection", (socket) => {
         itemId,
         roomId
       });
-      console.log(`Invite sent to user ${targetUserId} via socket ${targetSocketId}`);
+      console.log(`Invite sent to user ${targetUserId} via socket ${targetSocketId} `);
     }
   });
 
   socket.on("disconnect", () => {
-    console.log(`User disconnected: ${socket.id}`);
+    console.log(`User disconnected: ${socket.id} `);
 
     // Remove from chat rooms
     if (socket.room && roomUsers[socket.room]) {
