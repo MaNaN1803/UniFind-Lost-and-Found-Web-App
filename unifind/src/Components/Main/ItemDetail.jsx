@@ -66,6 +66,7 @@ const ItemDetail = () => {
         }
         socket.emit("invite_to_chat", {
             targetUserId: chatModal.targetUserId,
+            senderUserId: user?._id || user?.id,
             senderName: chatSenderName,
             roomId: chatRoomId,
             itemId: chatModal.itemId
