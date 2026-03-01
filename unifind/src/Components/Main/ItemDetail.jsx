@@ -325,8 +325,8 @@ const ItemDetail = () => {
                                             {claim.description}
                                         </p>
 
-                                        {/* Invite to Chat Button (Visible to the Poster and Admins) */}
-                                        {user && (item.createdBy?._id === user._id || user.role === 'admin') && (
+                                        {/* Invite to Chat Button (Visible to ALL authenticated users) */}
+                                        {user && (
                                             <button
                                                 onClick={() => {
                                                     setChatModal({
@@ -345,8 +345,8 @@ const ItemDetail = () => {
                                             </button>
                                         )}
 
-                                        {/* Secure Contact Info Box (Visible to Poster, Admin, and Claimant if Approved) */}
-                                        {(claim.status === 'approved' || user?.role === 'admin') && user && (user._id === claim.createdBy._id || user._id === item.createdBy?._id || user.role === 'admin') && (
+                                        {/* Secure Contact Info Box (Visible to ALL authenticated users once Approved) */}
+                                        {(claim.status === 'approved' || user?.role === 'admin') && user && (
                                             <div className="mt-4 p-4 bg-black/50 border border-green-500/30 rounded-xl relative overflow-hidden">
                                                 <div className="absolute top-0 right-0 w-16 h-16 bg-green-500/10 rounded-full blur-2xl pointer-events-none"></div>
                                                 <h5 className="font-bold text-green-400 mb-3 flex items-center gap-2 text-sm uppercase tracking-widest relative z-10">
