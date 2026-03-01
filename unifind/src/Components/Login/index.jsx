@@ -14,23 +14,12 @@ const Login = () => {
 		setData({ ...data, [input.name]: input.value });
 	};
 
-	const sendEmailOnLogin = async () => {
-		try {
-			const emailUrl = `${API_BASE_URL}/send-email-on-login`;
-			await axios.post(emailUrl);
-			console.log("Email sent successfully");
-		} catch (error) {
-			console.error("Error sending email:", error);
-		}
-	};
-
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		try {
 			const url = `${API_BASE_URL}/api/auth`;
 			const { data: res } = await axios.post(url, data);
 			login(res.data); // Use AuthContext to set token
-			sendEmailOnLogin();
 			navigate("/");
 		} catch (error) {
 			if (
